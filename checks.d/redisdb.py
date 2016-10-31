@@ -165,6 +165,9 @@ class Redis(AgentCheck):
 
         tags = self._get_tags(custom_tags, instance)
 
+        # Get the max memory from the config file.
+        maxmemory = conn.config_get('maxmemory')
+
         # Ping the database for info, and track the latency.
         # Process the service check: the check passes if we can connect to Redis
         start = time.time()
@@ -218,6 +221,9 @@ class Redis(AgentCheck):
             elif info_name in self.RATE_KEYS:
                 self.rate(self.RATE_KEYS[info_name], info[info_name], tags=tags)
 
+        # Save the maxmemory limit.
+        self.gauge('redis.conf.maxmemory',int(maxmemory['maxmemory']),tags=tags)
+        
         # Save the number of commands.
         self.rate('redis.net.commands', info['total_commands_processed'],
                   tags=tags)
